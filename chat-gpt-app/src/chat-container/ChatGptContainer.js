@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, Text, View, TextInput, Button, Alert } from "react-native";
-import { GiftedChat } from "react-native-gifted-chat";
+import { GiftedChat, Bubble } from "react-native-gifted-chat";
 import * as Speech from "expo-speech";
+import Icon from "react-native-vector-icons/AntDesign";
 
 const ChatGptContainer = ({ route }) => {
   const [messages, setMessages] = useState([]);
 
-  const [gptResponse, setData] = React.useState(
+  const [gptResponse, setData] = useState(
     `Hello ${route.params.name}, Ask me anything!`
   );
 
@@ -80,7 +81,7 @@ const ChatGptContainer = ({ route }) => {
       });
   };
 
-  const api_key = "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";
+  const api_key = "";
   const onSend = (messages) => {
     fetchGptResponse(messages[0].text);
     setMessages((previousMessages) =>
@@ -90,7 +91,60 @@ const ChatGptContainer = ({ route }) => {
   };
 
   return (
-    <View style={{ flex: 1, marginBottom: 30 }}>
+    <View style={{ flex: 1, marginBottom: 30, backgroundColor: "white" }}>
+      <View
+        style={{
+          borderColor: "#218aff",
+          borderWidth: 1,
+          margin: 5,
+          borderRadius: 10,
+          padding: 10,
+        }}
+      >
+        <Text
+          style={{
+            textAlign: "center",
+            color: "#218aff",
+            marginBottom: 15,
+            fontSize: 20,
+          }}
+        >
+          Voice Control Center
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Icon name="play" size={30} color="#218aff" onPress={speak} />
+          <Icon
+            name="pause"
+            size={30}
+            color="#218aff"
+            onPress={pauseSpeaking}
+          />
+          <Icon
+            name="playcircleo"
+            size={30}
+            color="#218aff"
+            onPress={resumeSpeaking}
+          />
+
+          <Icon
+            name="minuscircle"
+            size={30}
+            color="#218aff"
+            onPress={stopSpeaking}
+          />
+          <Icon
+            name="customerservice"
+            size={30}
+            color="#218aff"
+            onPress={stopSpeaking}
+          />
+        </View>
+      </View>
       <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
@@ -101,14 +155,31 @@ const ChatGptContainer = ({ route }) => {
         placeholder="Ask Chat GPT"
         isTyping={!isLoading}
         showUserAvatar={true}
+        renderBubble={(props) => {
+          return (
+            <Bubble
+              {...props}
+              textStyle={{
+                right: {
+                  color: "white",
+                },
+                left: {
+                  color: "black",
+                },
+              }}
+              wrapperStyle={{
+                left: {
+                  backgroundColor: "#d8d8d8",
+                },
+                right: {
+                  backgroundColor: "#218aff",
+                },
+              }}
+            />
+          );
+        }}
+        renderAvatar={null}
       />
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Button title="Play" onPress={speak} />
-        <Button title="Pause" onPress={pauseSpeaking} />
-        <Button title="Resume" onPress={resumeSpeaking} />
-        <Button title="Stop" onPress={stopSpeaking} />
-        <Button title="Mic" />
-      </View>
     </View>
   );
 };
