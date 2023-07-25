@@ -4,26 +4,52 @@ import { GiftedChat } from "react-native-gifted-chat";
 import * as Speech from "expo-speech";
 
 const ChatGptContainer = ({ route }) => {
+  const [messages, setMessages] = useState([]);
+
   const [gptResponse, setData] = React.useState(
     `Hello ${route.params.name}, Ask me anything!`
   );
-  const [messages, setMessages] = useState([gptResponse]);
+
+  useEffect(() => {
+    setMessages([
+      {
+        _id: 1,
+        text: `Hello ${route.params.name}, Ask me anything!`,
+        createdAt: new Date(),
+        user: {
+          _id: 2,
+          name: "GPT",
+        },
+      },
+    ]);
+  }, []);
+
   const [isLoading, setIsloading] = useState(false);
+
   const speak = () => {
     const thingToSay = gptResponse;
     Speech.speak(thingToSay);
   };
-  useEffect(() => {
-    setMessages((prevMessages) => [...prevMessages, gptResponse]);
-  }, [gptResponse]);
 
-  const fetchGptResponse = async () => {
+  const pauseSpeaking = () => {
+    Speech.pause();
+  };
+
+  const resumeSpeaking = () => {
+    Speech.resume();
+  };
+
+  const stopSpeaking = () => {
+    Speech.stop();
+  };
+
+  const fetchGptResponse = async (onSendText) => {
     const apiRequestBody = {
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "user",
-          content: inputEntered,
+          content: onSendText,
         },
       ],
     };
@@ -41,65 +67,48 @@ const ChatGptContainer = ({ route }) => {
         return data.json();
       })
       .then((data) => {
-        console.log("Loading...");
+        setMessages((previousMessages) =>
+          GiftedChat.append(previousMessages, {
+            _id: `${data.choices[0].message.content}`,
+            createdAt: "2023-07-25T12:58:56.521Z",
+            text: data.choices[0].message.content,
+            name: route.params.name,
+            user: { _id: 2, name: "GPT" },
+          })
+        );
         setData(data.choices[0].message.content);
       });
   };
 
-  const api_key = "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";
-  // const onSend = (messages) => {
-  //   console.log("single message", messages);
-  //   fetchGptResponse(messages[0].text);
-  //   setMessages((previousMessages) =>
-  //     GiftedChat.append(previousMessages, messages)
-  //   );
-  //   setIsloading(false);
-  // };
-
-  React.useEffect(() => {
-    console.log("gpt response --- ", gptResponse);
-  }, [gptResponse]);
-
-  const handleSend = () => {
-    setMessages((prevMessages) => [...prevMessages, inputEntered]);
-    fetchGptResponse();
-    setInputEntered("");
+  const api_key = "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";
+  const onSend = (messages) => {
+    fetchGptResponse(messages[0].text);
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, messages)
+    );
+    setIsloading(false);
   };
-  const [inputEntered, setInputEntered] = useState("");
-  const styles = StyleSheet.create({
-    input: {
-      height: 40,
-      margin: 12,
-      borderWidth: 1,
-      padding: 10,
-    },
-  });
-  const handleChange = (e) => {
-    setInputEntered(e);
-  };
+
   return (
     <View style={{ flex: 1, marginBottom: 30 }}>
-      {/* <GiftedChat
+      <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
         user={{
           _id: 1,
+          name: route.params.name,
         }}
         placeholder="Ask Chat GPT"
         isTyping={!isLoading}
-      /> */}
-      {messages.map((message, index) => {
-        console.log(message);
-        return <Text>{message}</Text>;
-      })}
-      <TextInput
-        value={inputEntered}
-        onChangeText={handleChange}
-        style={styles.input}
-        placeholder="Enter your queries..."
+        showUserAvatar={true}
       />
-      <Button title="Send" onPress={handleSend} />
-      <Button title="Audio Response" onPress={speak} />
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Button title="Play" onPress={speak} />
+        <Button title="Pause" onPress={pauseSpeaking} />
+        <Button title="Resume" onPress={resumeSpeaking} />
+        <Button title="Stop" onPress={stopSpeaking} />
+        <Button title="Mic" />
+      </View>
     </View>
   );
 };
