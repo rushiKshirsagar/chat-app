@@ -1,35 +1,29 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, Text, View, TextInput, Button, Alert } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
+import * as Speech from "expo-speech";
 
 const ChatGptContainer = ({ route }) => {
   const [gptResponse, setData] = React.useState(
     `Hello ${route.params.name}, Ask me anything!`
   );
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([gptResponse]);
   const [isLoading, setIsloading] = useState(false);
+  const speak = () => {
+    const thingToSay = gptResponse;
+    Speech.speak(thingToSay);
+  };
   useEffect(() => {
-    setMessages([
-      {
-        _id: 1,
-        text: gptResponse,
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "GPT",
-          avatar: "https://placeimg.com/140/140/any",
-        },
-      },
-    ]);
+    setMessages((prevMessages) => [...prevMessages, gptResponse]);
   }, [gptResponse]);
 
-  const fetchGptResponse = async (onSendText) => {
+  const fetchGptResponse = async () => {
     const apiRequestBody = {
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "user",
-          content: onSendText,
+          content: inputEntered,
         },
       ],
     };
@@ -52,22 +46,40 @@ const ChatGptContainer = ({ route }) => {
       });
   };
 
-  const api_key = "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";
-  const onSend = (messages) => {
-    fetchGptResponse(messages[0].text);
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-    setIsloading(false);
-  };
+  const api_key = "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";
+  // const onSend = (messages) => {
+  //   console.log("single message", messages);
+  //   fetchGptResponse(messages[0].text);
+  //   setMessages((previousMessages) =>
+  //     GiftedChat.append(previousMessages, messages)
+  //   );
+  //   setIsloading(false);
+  // };
 
   React.useEffect(() => {
     console.log("gpt response --- ", gptResponse);
   }, [gptResponse]);
 
+  const handleSend = () => {
+    setMessages((prevMessages) => [...prevMessages, inputEntered]);
+    fetchGptResponse();
+    setInputEntered("");
+  };
+  const [inputEntered, setInputEntered] = useState("");
+  const styles = StyleSheet.create({
+    input: {
+      height: 40,
+      margin: 12,
+      borderWidth: 1,
+      padding: 10,
+    },
+  });
+  const handleChange = (e) => {
+    setInputEntered(e);
+  };
   return (
     <View style={{ flex: 1, marginBottom: 30 }}>
-      <GiftedChat
+      {/* <GiftedChat
         messages={messages}
         onSend={(messages) => onSend(messages)}
         user={{
@@ -75,7 +87,19 @@ const ChatGptContainer = ({ route }) => {
         }}
         placeholder="Ask Chat GPT"
         isTyping={!isLoading}
+      /> */}
+      {messages.map((message, index) => {
+        console.log(message);
+        return <Text>{message}</Text>;
+      })}
+      <TextInput
+        value={inputEntered}
+        onChangeText={handleChange}
+        style={styles.input}
+        placeholder="Enter your queries..."
       />
+      <Button title="Send" onPress={handleSend} />
+      <Button title="Audio Response" onPress={speak} />
     </View>
   );
 };
