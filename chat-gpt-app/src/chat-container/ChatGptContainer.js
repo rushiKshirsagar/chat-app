@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, Text, View, TextInput, Button, Alert } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 
-const ChatGptContainer = () => {
-  const [text, setText] = React.useState("");
-  const [gptResponse, setData] = React.useState("Ask me anything!");
-  const [chatMessages, setMessages] = useState([]);
+const ChatGptContainer = ({ route }) => {
+  const [gptResponse, setData] = React.useState(
+    `Hello ${route.params.name}, Ask me anything!`
+  );
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsloading] = useState(false);
   useEffect(() => {
     setMessages([
@@ -15,23 +16,20 @@ const ChatGptContainer = () => {
         createdAt: new Date(),
         user: {
           _id: 2,
-          name: "React Native",
+          name: "GPT",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
     ]);
   }, [gptResponse]);
-  const handleTextChange = (e) => {
-    setText(e);
-  };
 
-  const fetchGptResponse = async () => {
+  const fetchGptResponse = async (onSendText) => {
     const apiRequestBody = {
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "user",
-          content: text,
+          content: onSendText,
         },
       ],
     };
@@ -54,29 +52,28 @@ const ChatGptContainer = () => {
       });
   };
 
-  const api_key = "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";
-  const onSend = useCallback((chatMessages) => {
-    fetchGptResponse();
+  const api_key = "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";
+  const onSend = (messages) => {
+    fetchGptResponse(messages[0].text);
     setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, chatMessages)
+      GiftedChat.append(previousMessages, messages)
     );
     setIsloading(false);
-  }, []);
+  };
 
   React.useEffect(() => {
-    console.log(gptResponse);
+    console.log("gpt response --- ", gptResponse);
   }, [gptResponse]);
 
   return (
     <View style={{ flex: 1, marginBottom: 30 }}>
       <GiftedChat
-        messages={chatMessages}
-        onSend={(chatMessages) => onSend(chatMessages)}
+        messages={messages}
+        onSend={(messages) => onSend(messages)}
         user={{
           _id: 1,
         }}
         placeholder="Ask Chat GPT"
-        onInputTextChanged={(e) => handleTextChange(e)}
         isTyping={!isLoading}
       />
     </View>
@@ -84,11 +81,3 @@ const ChatGptContainer = () => {
 };
 
 export default ChatGptContainer;
-
-const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
-  },
-});
